@@ -6,11 +6,9 @@ import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { SessionProvider, useSession } from '@/hooks/use-session';
 
 SplashScreen.preventAutoHideAsync();
-
-// TODO: replace with real onboarding state once it's stored somewhere.
-const hasOnboarded = false;
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -25,18 +23,29 @@ export default function RootLayout() {
   }
 
   return (
-    <KeyboardProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Protected guard={hasOnboarded} redirectTo="/onboarding/welcome">
-            <Stack.Screen name="(tabs)" />
-          </Stack.Protected>
-          <Stack.Protected guard={!hasOnboarded} redirectTo="/">
-            <Stack.Screen name="onboarding" />
-          </Stack.Protected>
-        </Stack>
-      </ThemeProvider>
-    </KeyboardProvider>
+    <SessionProvider>
+      <KeyboardProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <AnimatedSplashOverlay />
+          <RootStack />
+        </ThemeProvider>
+      </KeyboardProvider>
+    </SessionProvider>
+  );
+}
+
+// Signing in flips the guards, and the router moves the user from onboarding to home on its own.
+function RootStack() {
+  const { isSignedIn } = useSession();
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={isSignedIn} redirectTo="/onboarding/welcome">
+        <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={!isSignedIn} redirectTo="/">
+        <Stack.Screen name="onboarding" />
+      </Stack.Protected>
+    </Stack>
   );
 }

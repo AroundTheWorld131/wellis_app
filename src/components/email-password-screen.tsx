@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimatedButton } from '@/components/animated-button';
 import { TextInputStep } from '@/components/text-input-step';
 import { BrandColor } from '@/constants/theme';
+import { useSession } from '@/hooks/use-session';
 
 // The two-page email then password screen that logging in and signing up share,
 // same layout as the Balm app's auth screens. UI only for now.
@@ -36,6 +37,7 @@ export function EmailPasswordScreen({
 }: EmailPasswordScreenProps) {
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
+  const { signIn } = useSession();
   const scrollViewRef = useRef<ScrollViewInstance>(null);
   const emailInputRef = useRef<TextInputInstance>(null);
   const passwordInputRef = useRef<TextInputInstance>(null);
@@ -68,8 +70,11 @@ export function EmailPasswordScreen({
   const handleContinue = () => {
     if (currentPage === 0) {
       scrollToPage(1);
+      return;
     }
-    // TODO: log in or sign up here once there's a backend.
+    // TODO: check the email and password against a backend before signing in.
+    Keyboard.dismiss();
+    signIn();
   };
 
   return (
