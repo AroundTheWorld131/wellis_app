@@ -76,11 +76,11 @@ export function EmailPasswordScreen({
       <View style={styles.header}>
         <AnimatedButton onPress={handleBack} scaleTo={0.95} style={styles.backButton}>
           <SymbolView
-            name="chevron.backward"
-            size={21}
+            name="arrow.left"
+            size={20}
             weight="medium"
             tintColor="#000"
-            fallback={<Text style={styles.backFallback}>‹</Text>}
+            fallback={<Text style={styles.backFallback}>←</Text>}
           />
         </AnimatedButton>
       </View>
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f6f6f9',
   },
   backFallback: {
-    fontSize: 30,
-    lineHeight: 32,
+    fontSize: 22,
+    lineHeight: 24,
     color: '#000',
   },
   pages: {
@@ -196,9 +196,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: '600',
-    letterSpacing: -0.5,
     color: '#ffffff',
   },
 });

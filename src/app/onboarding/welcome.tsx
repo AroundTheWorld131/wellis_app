@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
     fontSize: 18,
     lineHeight: 21,
-    letterSpacing: -0.3,
     color: '#262626',
     textAlign: 'center',
   },
@@ -236,7 +235,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 19,
     fontWeight: '600',
-    letterSpacing: -0.5,
   },
   primaryButton: {
     backgroundColor: BrandColor,

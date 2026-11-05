@@ -59,9 +59,8 @@ const styles = StyleSheet.create({
   input: {
     marginTop: 40,
     paddingHorizontal: 40,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '500',
-    letterSpacing: -0.6,
     color: '#000',
   },
 });
