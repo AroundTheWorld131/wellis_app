@@ -1,10 +1,9 @@
 import { SymbolView } from 'expo-symbols';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -18,7 +17,7 @@ export default function ProfileScreen() {
           <ThemedView type="backgroundElement" style={styles.avatar}>
             <SymbolView
               tintColor={theme.textSecondary}
-              name={{ ios: 'person.fill', android: 'person', web: 'person' }}
+              name={{ ios: 'person.fill', android: 'person' }}
               size={48}
             />
           </ThemedView>
@@ -28,7 +27,6 @@ export default function ProfileScreen() {
           </ThemedText>
         </ThemedView>
 
-        {Platform.OS === 'web' && <WebBadge />}
       </SafeAreaView>
     </ThemedView>
   );

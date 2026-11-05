@@ -43,6 +43,7 @@ export function EmailPasswordScreen({
   const [currentPage, setCurrentPage] = useState(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const passwordValid = isPasswordValid(password);
@@ -74,7 +75,7 @@ export function EmailPasswordScreen({
   return (
     <View style={[styles.container, { paddingTop: insets.top + 4 }]}>
       <View style={styles.header}>
-        <AnimatedButton onPress={handleBack} scaleTo={0.95} style={styles.backButton}>
+        <AnimatedButton onPress={handleBack} scaleTo={0.95} style={styles.headerButton}>
           <SymbolView
             name="arrow.left"
             size={20}
@@ -83,6 +84,25 @@ export function EmailPasswordScreen({
             fallback={<Text style={styles.backFallback}>←</Text>}
           />
         </AnimatedButton>
+
+        {/* Only the password page gets the reveal toggle; the email page keeps the slot empty. */}
+        {currentPage === 1 ? (
+          <AnimatedButton
+            onPress={() => setPasswordVisible((visible) => !visible)}
+            scaleTo={0.95}
+            accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}
+            style={styles.headerButton}>
+            <SymbolView
+              name={passwordVisible ? 'eye.slash' : 'eye'}
+              size={20}
+              weight="medium"
+              tintColor="#000"
+              fallback={
+                <Text style={styles.eyeFallback}>{passwordVisible ? 'Hide' : 'Show'}</Text>
+              }
+            />
+          </AnimatedButton>
+        ) : null}
       </View>
 
       {/* Pages only move with the buttons, never by swiping. */}
@@ -125,7 +145,7 @@ export function EmailPasswordScreen({
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
+          secureTextEntry={!passwordVisible}
           textContentType="oneTimeCode"
           autoComplete="off"
           spellCheck={false}
@@ -163,8 +183,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 10,
     flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  backButton: {
+  headerButton: {
     width: 42,
     height: 42,
     borderRadius: 999,
@@ -175,6 +196,11 @@ const styles = StyleSheet.create({
   backFallback: {
     fontSize: 22,
     lineHeight: 24,
+    color: '#000',
+  },
+  eyeFallback: {
+    fontSize: 11,
+    fontWeight: '600',
     color: '#000',
   },
   pages: {
