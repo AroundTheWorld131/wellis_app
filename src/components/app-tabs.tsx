@@ -24,12 +24,14 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+      <NativeTabs.Trigger name="progress">
+        <NativeTabs.Trigger.Label>Progress</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="chart.line.uptrend.xyaxis" md="trending_up" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="chat">
+        <NativeTabs.Trigger.Label>Chat</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="bubble.left.and.bubble.right" md="chat" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="profile">
