@@ -23,6 +23,8 @@ export const Colors = {
 } as const;
 
 export const BrandColor = '#004851';
+// BrandColor mixed 10% into white, for soft page backgrounds.
+export const BrandColorSoft = '#E6EDEE';
 
 export type ThemeColor =keyof typeof Colors.light & keyof typeof Colors.dark;
 

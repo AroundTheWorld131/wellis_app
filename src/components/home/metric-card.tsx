@@ -1,3 +1,4 @@
+import { Image, type ImageSource } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -19,6 +20,8 @@ export const CardColors = {
 
 type MetricCardProps = {
   title: string;
+  /** Illustration shown left of the title. */
+  icon?: ImageSource;
   /** Shown right after the title, like the calories card's up/down chevron. */
   titleAccessory?: ReactNode;
   value: string;
@@ -26,24 +29,29 @@ type MetricCardProps = {
   unitColor?: string;
   /** The ring or button on the right of the value. */
   action: ReactNode;
+  /** Makes the whole card tappable, not just its action. */
+  onPress?: () => void;
   children?: ReactNode;
 };
 
 // White home card: grey title, big number with an optional unit, and an action on the right.
 export function MetricCard({
   title,
+  icon,
   titleAccessory,
   value,
   unit,
   unitColor = CardColors.label,
   action,
+  onPress,
   children,
 }: MetricCardProps) {
-  return (
-    <View style={styles.card}>
+  const content = (
+    <>
       <View style={styles.top}>
         <View style={styles.heading}>
           <View style={styles.titleRow}>
+            {icon ? <Image source={icon} style={styles.icon} contentFit="contain" /> : null}
             <Text style={styles.title}>{title}</Text>
             {titleAccessory}
           </View>
@@ -55,8 +63,17 @@ export function MetricCard({
         {action}
       </View>
       {children}
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <AnimatedButton onPress={onPress} scaleTo={0.98} style={styles.card}>
+        {content}
+      </AnimatedButton>
+    );
+  }
+  return <View style={styles.card}>{content}</View>;
 }
 
 const RING_SIZE = 72;
@@ -66,11 +83,18 @@ type ProgressRingButtonProps = {
   /** 0 to 1. At 0 the ring shows a single dot where progress starts. */
   progress: number;
   color?: string;
+  /** What sits in the middle of the ring. Defaults to a plus. */
+  icon?: ReactNode;
   onPress?: () => void;
 };
 
 // Grey ring that fills clockwise from the top, orange by default, with a plus in the middle.
-export function ProgressRingButton({ progress, color = CardColors.accent, onPress }: ProgressRingButtonProps) {
+export function ProgressRingButton({
+  progress,
+  color = CardColors.accent,
+  icon = <PlusIcon />,
+  onPress,
+}: ProgressRingButtonProps) {
   const radius = (RING_SIZE - RING_STROKE) / 2;
   const circumference = 2 * Math.PI * radius;
   const animatedProgress = useAnimatedProgress(progress);
@@ -105,7 +129,7 @@ export function ProgressRingButton({ progress, color = CardColors.accent, onPres
           transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
         />
       </Svg>
-      <PlusIcon />
+      {icon}
     </AnimatedButton>
   );
 }
@@ -154,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 40,
     borderCurve: 'continuous',
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
     paddingTop: 28,
     paddingBottom: 28,
     gap: 28,
@@ -172,6 +196,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  icon: {
+    width: 18,
+    height: 18,
   },
   title: {
     fontSize: 17,

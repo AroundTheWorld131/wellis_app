@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -43,15 +44,7 @@ export function CaloriesCard() {
   return (
     <MetricCard
       title="Calories eaten"
-      titleAccessory={
-        <SymbolView
-          name="chevron.up.chevron.down"
-          size={14}
-          weight="bold"
-          tintColor={CardColors.label}
-          fallback={<Text style={styles.chevronFallback}>⇅</Text>}
-        />
-      }
+      icon={require('@/assets/images/cardIcons/calories.png')}
       value="30"
       action={<ProgressRingButton progress={0} color={CALORIES_COLOR} />}>
       <View style={styles.macros}>
@@ -90,6 +83,7 @@ export function WaterCard() {
   return (
     <MetricCard
       title="Water"
+      icon={require('@/assets/images/cardIcons/water.png')}
       value={waterMl.toLocaleString('en-US')}
       unit="ml"
       action={
@@ -130,6 +124,7 @@ export function ShotCard() {
   return (
     <MetricCard
       title="Shot"
+      icon={require('@/assets/images/cardIcons/shot.png')}
       value={LAST_SHOT.dose}
       unit="mg"
       unitColor="#d4d4d4"
@@ -146,16 +141,52 @@ export function ShotCard() {
 const WEIGHT_KG = 60;
 const START_WEIGHT_KG = 67.4;
 
+const STEPS = 6240;
+const STEPS_GOAL = 10000;
+const STEPS_COLOR = '#6bbf8a';
+
+export function StepsCard() {
+  return (
+    <MetricCard
+      title="Steps"
+      icon={require('@/assets/images/cardIcons/steps.png')}
+      value={STEPS.toLocaleString('en-US')}
+      action={
+        <ProgressRingButton
+          progress={STEPS / STEPS_GOAL}
+          color={STEPS_COLOR}
+          icon={
+            <SymbolView
+              name="figure.walk"
+              size={26}
+              weight="semibold"
+              tintColor={CardColors.value}
+              fallback={<Text style={styles.footerText}>👟</Text>}
+            />
+          }
+        />
+      }>
+      <CardFooter>
+        <Text style={styles.footerText}>Goal: {STEPS_GOAL.toLocaleString('en-US')} steps</Text>
+      </CardFooter>
+    </MetricCard>
+  );
+}
+
+const openLogWeight = () => router.push('/log-weight');
+
 export function WeightCard() {
   const lostKg = Math.round((START_WEIGHT_KG - WEIGHT_KG) * 10) / 10;
 
   return (
     <MetricCard
       title="Weight"
+      icon={require('@/assets/images/cardIcons/weight.png')}
       value={String(WEIGHT_KG)}
       unit="kg"
       unitColor="#d4d4d4"
-      action={<PlusCircleButton />}>
+      onPress={openLogWeight}
+      action={<PlusCircleButton onPress={openLogWeight} />}>
       <CardFooter>
         <View style={styles.downBadge}>
           <SymbolView
@@ -173,11 +204,6 @@ export function WeightCard() {
 }
 
 const styles = StyleSheet.create({
-  chevronFallback: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: CardColors.label,
-  },
   macros: {
     flexDirection: 'row',
     gap: 24,

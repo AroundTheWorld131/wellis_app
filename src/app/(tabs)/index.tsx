@@ -1,52 +1,58 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import { CaloriesCard, ShotCard, WaterCard, WeightCard } from '@/components/home/home-cards';
+import { CaloriesCard, ShotCard, StepsCard, WaterCard, WeightCard } from '@/components/home/home-cards';
+import { StreakBadge } from '@/components/home/streak-badge';
+import { UpcomingCallCard } from '@/components/home/upcoming-call-card';
+import { WeekStrip } from '@/components/home/week-strip';
 import { TabScreen } from '@/components/tab-screen';
+import { sampleStreakWeek } from '@/constants/sample-streak';
 
 export default function HomeScreen() {
   return (
-    <TabScreen title="Home">
+    <TabScreen
+      backgroundColor="#f2f2f6"
+      headerLeft={
+        <Image
+          source={require('@/assets/images/wellis-logo.svg')}
+          style={styles.logo}
+          contentFit="contain"
+        />
+      }
+      headerRight={<StreakBadge days={sampleStreakWeek().streak} />}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-        <View style={styles.greeting}>
-          <Text style={styles.greetingTitle}>Welcome back, Mark</Text>
-          <Text style={styles.greetingSubtitle}>Upcoming intake call</Text>
-        </View>
+        <WeekStrip style={styles.weekStrip} />
+        <UpcomingCallCard />
         <WeightCard />
         <ShotCard />
         <CaloriesCard />
         <WaterCard />
+        <StepsCard />
       </ScrollView>
     </TabScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  // Source SVG is 109×37.
+  logo: {
+    width: 88,
+    height: 30,
+  },
+  weekStrip: {
+    // 40pt above the first card, with the gap below.
+    marginBottom: 34,
+  },
   scroll: {
     flex: 1,
   },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 120,
     gap: 6,
-  },
-  // Lines up with the cards' inner padding, with extra room before the first card.
-  greeting: {
-    paddingHorizontal: 4,
-    marginBottom: 10,
-    gap: 2,
-  },
-  greetingTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#262626',
-  },
-  greetingSubtitle: {
-    fontSize: 17,
-    fontWeight: '500',
-    color: '#a3a3a3',
   },
 });
