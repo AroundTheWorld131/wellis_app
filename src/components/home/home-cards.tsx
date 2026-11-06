@@ -12,6 +12,7 @@ import {
   ProgressRingButton,
 } from '@/components/home/metric-card';
 import { WaterGlass } from '@/components/home/water-glass';
+import { metricHref } from '@/constants/metrics';
 import { useAnimatedProgress } from '@/hooks/use-animated-progress';
 
 // UI only: the numbers are placeholders until there's real tracking data.
@@ -44,6 +45,7 @@ export function CaloriesCard() {
   return (
     <MetricCard
       title="Calories eaten"
+      onPress={() => router.push(metricHref('calories'))}
       icon={require('@/assets/images/cardIcons/calories.png')}
       value="30"
       action={<ProgressRingButton progress={0} color={CALORIES_COLOR} />}>
@@ -83,6 +85,7 @@ export function WaterCard() {
   return (
     <MetricCard
       title="Water"
+      onPress={() => router.push(metricHref('water'))}
       icon={require('@/assets/images/cardIcons/water.png')}
       value={waterMl.toLocaleString('en-US')}
       unit="ml"
@@ -124,6 +127,7 @@ export function ShotCard() {
   return (
     <MetricCard
       title="Shot"
+      onPress={() => router.push(metricHref('shot'))}
       icon={require('@/assets/images/cardIcons/shot.png')}
       value={LAST_SHOT.dose}
       unit="mg"
@@ -149,6 +153,7 @@ export function StepsCard() {
   return (
     <MetricCard
       title="Steps"
+      onPress={() => router.push(metricHref('steps'))}
       icon={require('@/assets/images/cardIcons/steps.png')}
       value={STEPS.toLocaleString('en-US')}
       action={
@@ -185,7 +190,8 @@ export function WeightCard() {
       value={String(WEIGHT_KG)}
       unit="kg"
       unitColor="#d4d4d4"
-      onPress={openLogWeight}
+      // The card opens the Weight screen; the plus logs a new weight.
+      onPress={() => router.push(metricHref('weight'))}
       action={<PlusCircleButton onPress={openLogWeight} />}>
       <CardFooter>
         <View style={styles.downBadge}>

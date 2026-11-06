@@ -42,6 +42,7 @@ function RootStack() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={isSignedIn} redirectTo="/onboarding/welcome">
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="metrics/[metric]" />
         <Stack.Screen name="log-weight" options={{ presentation: 'modal' }} />
         <Stack.Screen name="streak" options={{ presentation: 'fullScreenModal' }} />
       </Stack.Protected>
