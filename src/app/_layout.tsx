@@ -6,6 +6,7 @@ import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { ChatsProvider } from '@/hooks/use-chats';
 import { SessionProvider, useSession } from '@/hooks/use-session';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,12 +25,14 @@ export default function RootLayout() {
 
   return (
     <SessionProvider>
-      <KeyboardProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <AnimatedSplashOverlay />
-          <RootStack />
-        </ThemeProvider>
-      </KeyboardProvider>
+      <ChatsProvider>
+        <KeyboardProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <AnimatedSplashOverlay />
+            <RootStack />
+          </ThemeProvider>
+        </KeyboardProvider>
+      </ChatsProvider>
     </SessionProvider>
   );
 }
@@ -45,6 +48,7 @@ function RootStack() {
         <Stack.Screen name="metrics/[metric]" />
         <Stack.Screen name="log-weight" options={{ presentation: 'modal' }} />
         <Stack.Screen name="streak" options={{ presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="chat/[id]" />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn} redirectTo="/">
         <Stack.Screen name="onboarding" />

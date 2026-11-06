@@ -12,11 +12,12 @@ export function GoalsCard() {
         icon={require('@/assets/images/cardIcons/calories.png')}
         value="2,036 kcal"
       />
-      {/* No macros icon yet, so it shares the calories one. */}
+      <SettingsRow label="Carbs" icon={require('@/assets/images/cardIcons/carbs.png')} value="492 g" />
+      <SettingsRow label="Fats" icon={require('@/assets/images/cardIcons/fat.png')} value="84 g" />
       <SettingsRow
-        label="Macros"
-        icon={require('@/assets/images/cardIcons/calories.png')}
-        value="492–84–150 g"
+        label="Proteins"
+        icon={require('@/assets/images/cardIcons/protein.png')}
+        value="150 g"
       />
       <SettingsRow label="Water" icon={require('@/assets/images/cardIcons/water.png')} value="2,500 ml" />
       <SettingsRow label="Steps" icon={require('@/assets/images/cardIcons/steps.png')} value="10,000" />

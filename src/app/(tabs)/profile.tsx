@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import {
@@ -8,6 +7,7 @@ import {
   PreferencesCard,
   SupportCard,
 } from '@/components/profile/profile-cards';
+import { ProfileHeader } from '@/components/profile/profile-header';
 import { TabScreen } from '@/components/tab-screen';
 
 export default function ProfileScreen() {
@@ -17,11 +17,7 @@ export default function ProfileScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-        <Image
-          source={require('@/assets/images/wellis-logo.svg')}
-          style={styles.logo}
-          contentFit="contain"
-        />
+        <ProfileHeader name="Mark" />
         <GoalsCard />
         <PreferencesCard />
         <AccountCard />
@@ -39,15 +35,8 @@ const styles = StyleSheet.create({
   // Same spacing between cards as Home.
   content: {
     paddingHorizontal: 16,
-    paddingTop: 40,
+    paddingTop: 60,
     paddingBottom: 120,
     gap: 6,
-  },
-  // Source SVG is 109×37. Extra space under it so it doesn't crowd the first card.
-  logo: {
-    alignSelf: 'center',
-    width: 109,
-    height: 37,
-    marginBottom: 24,
   },
 });

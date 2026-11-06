@@ -54,16 +54,6 @@ export function MetricCard({
             {icon ? <Image source={icon} style={styles.icon} contentFit="contain" /> : null}
             <Text style={styles.title}>{title}</Text>
             {titleAccessory}
-            {/* Tappable cards open a detail screen; the chevron says so. */}
-            {onPress ? (
-              <SymbolView
-                name="chevron.right"
-                size={13}
-                weight="semibold"
-                tintColor={CardColors.label}
-                fallback={<Text style={styles.title}>›</Text>}
-              />
-            ) : null}
           </View>
           <View style={styles.valueRow}>
             <Text style={styles.value}>{value}</Text>

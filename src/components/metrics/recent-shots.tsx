@@ -1,3 +1,4 @@
+import { SymbolView } from 'expo-symbols';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 type Shot = {
@@ -53,7 +54,17 @@ export function RecentShots({ count = 10, style }: { count?: number; style?: Sty
     <View style={[styles.list, style]}>
       {shots.map((shot) => (
         <View key={shot.date.getTime()} style={styles.card}>
-          <Text style={styles.title}>{formatDay(shot.date)}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{formatDay(shot.date)}</Text>
+            {/* Hints that each shot opens; nothing to open yet. TODO: shot detail. */}
+            <SymbolView
+              name="chevron.right"
+              size={14}
+              weight="semibold"
+              tintColor="#a3a3a3"
+              fallback={<Text style={styles.title}>›</Text>}
+            />
+          </View>
           <View style={styles.valueRow}>
             <Text style={styles.value}>{shot.doseMg}</Text>
             <Text style={styles.unit}>mg</Text>
@@ -79,6 +90,11 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     paddingHorizontal: 24,
     paddingVertical: 22,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   title: {
     fontSize: 17,
