@@ -1,10 +1,9 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ChatAvatar } from '@/components/chat/chat-avatar';
 import { formatTime } from '@/components/chat/chat-format';
-import type { ChatContact, ChatMessage } from '@/constants/sample-chats';
+import type { ChatContact, ChatMessage } from '@/hooks/use-chat';
 import { BrandColor } from '@/constants/theme';
 
 export const AVATAR_SIZE = 32;
@@ -24,22 +23,17 @@ function photoSize(width: number, height: number) {
 type MessageBubbleProps = {
   message: ChatMessage;
   contact: ChatContact;
-  /** First of a run from the same sender: shows their name above. */
-  isFirstInGroup: boolean;
   /** Last of a run: shows the avatar, time and the squared corner. */
   isLastInGroup: boolean;
-  /** Messages that arrive while the chat is open slide in. */
-  animate?: boolean;
 };
 
-// Brand-colored bubbles on the right for the user, white ones with an avatar on the left for the contact.
-export function MessageBubble({ message, contact, isFirstInGroup, isLastInGroup, animate }: MessageBubbleProps) {
+// Brand-colored bubbles on the right for the user, light gray ones with an avatar on the left for the contact.
+export function MessageBubble({ message, contact, isLastInGroup }: MessageBubbleProps) {
   const isMine = message.from === 'me';
   const { image, text } = message;
 
   return (
-    <Animated.View
-      entering={animate ? FadeInDown.springify().damping(18) : undefined}
+    <View
       style={[styles.row, isMine ? styles.rowMine : styles.rowTheirs, isLastInGroup && styles.rowLast]}>
       {!isMine ? (
         <View style={styles.avatarSlot}>
@@ -48,7 +42,6 @@ export function MessageBubble({ message, contact, isFirstInGroup, isLastInGroup,
       ) : null}
 
       <View style={[styles.column, isMine ? styles.columnMine : styles.columnTheirs]}>
-        {!isMine && isFirstInGroup ? <Text style={styles.sender}>{contact.name}</Text> : null}
         <View
           style={[
             styles.bubble,
@@ -63,7 +56,7 @@ export function MessageBubble({ message, contact, isFirstInGroup, isLastInGroup,
         </View>
         {isLastInGroup ? <Text style={styles.time}>{formatTime(message.sentAt)}</Text> : null}
       </View>
-    </Animated.View>
+    </View>
   );
 }
 
@@ -100,12 +93,6 @@ const styles = StyleSheet.create({
   columnTheirs: {
     alignItems: 'flex-start',
   },
-  sender: {
-    marginLeft: 12,
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#a3a3a3',
-  },
   bubble: {
     borderRadius: BUBBLE_RADIUS,
     borderCurve: 'continuous',
@@ -116,7 +103,7 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColor,
   },
   bubbleTheirs: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f6f6f9',
   },
   // The photo runs to the bubble's edges, clipped by its corners.
   bubblePhoto: {

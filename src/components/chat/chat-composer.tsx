@@ -2,10 +2,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated, { FadeOut, ZoomIn } from 'react-native-reanimated';
 
 import { AnimatedButton } from '@/components/animated-button';
-import type { ChatImage } from '@/constants/sample-chats';
+import type { ChatImage } from '@/hooks/use-chat';
 import { BrandColor } from '@/constants/theme';
 
 const BUTTON_SIZE = 44;
@@ -41,11 +40,15 @@ export function ChatComposer({ onSend, onSendPhoto, bottomInset }: ChatComposerP
   return (
     <View style={[styles.container, { paddingBottom: bottomInset + 8 }]}>
       <View style={styles.bar}>
-        <AnimatedButton onPress={handlePickPhoto} scaleTo={0.9} style={styles.photoButton}>
+        <AnimatedButton
+          onPress={handlePickPhoto}
+          scaleTo={0.9}
+          style={styles.photoButton}
+          accessibilityLabel="Add a photo">
           <SymbolView
-            name="photo"
+            name="plus"
             size={19}
-            weight="medium"
+            weight="semibold"
             tintColor="#262626"
             fallback={<Text style={styles.fallback}>+</Text>}
           />
@@ -65,17 +68,15 @@ export function ChatComposer({ onSend, onSendPhoto, bottomInset }: ChatComposerP
         </View>
 
         {canSend ? (
-          <Animated.View entering={ZoomIn.springify().damping(16)} exiting={FadeOut.duration(120)}>
-            <AnimatedButton onPress={handleSend} scaleTo={0.9} hapticStyle="medium" style={styles.sendButton}>
-              <SymbolView
-                name="arrow.up"
-                size={18}
-                weight="bold"
-                tintColor="#ffffff"
-                fallback={<Text style={[styles.fallback, styles.sendFallback]}>↑</Text>}
-              />
-            </AnimatedButton>
-          </Animated.View>
+          <AnimatedButton onPress={handleSend} disableAnimation hapticStyle="medium" style={styles.sendButton}>
+            <SymbolView
+              name="arrow.up"
+              size={18}
+              weight="bold"
+              tintColor="#ffffff"
+              fallback={<Text style={[styles.fallback, styles.sendFallback]}>↑</Text>}
+            />
+          </AnimatedButton>
         ) : null}
       </View>
     </View>

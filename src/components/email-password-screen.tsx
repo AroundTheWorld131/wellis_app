@@ -1,7 +1,10 @@
+import { useAuthActions } from '@convex-dev/auth/react';
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -17,27 +20,32 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimatedButton } from '@/components/animated-button';
 import { TextInputStep } from '@/components/text-input-step';
 import { BrandColor } from '@/constants/theme';
-import { useSession } from '@/hooks/use-session';
 
 // The two-page email then password screen that logging in and signing up share,
-// same layout as the Balm app's auth screens. UI only for now.
+// same layout as the Balm app's auth screens. Signs in with Convex Auth's Password provider.
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type EmailPasswordScreenProps = {
+  /** 'signIn' checks an existing account, 'signUp' creates one. */
+  flow: 'signIn' | 'signUp';
+  /** Title and message shown when Convex turns the email and password down. */
+  failureAlert: [string, string];
   passwordTitle: string;
   passwordSubtitle: string;
   isPasswordValid: (password: string) => boolean;
 };
 
 export function EmailPasswordScreen({
+  flow,
+  failureAlert,
   passwordTitle,
   passwordSubtitle,
   isPasswordValid,
 }: EmailPasswordScreenProps) {
   const insets = useSafeAreaInsets();
   const { width: pageWidth } = useWindowDimensions();
-  const { signIn } = useSession();
+  const { signIn } = useAuthActions();
   const scrollViewRef = useRef<ScrollViewInstance>(null);
   const emailInputRef = useRef<TextInputInstance>(null);
   const passwordInputRef = useRef<TextInputInstance>(null);
@@ -46,6 +54,7 @@ export function EmailPasswordScreen({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const passwordValid = isPasswordValid(password);
@@ -59,6 +68,7 @@ export function EmailPasswordScreen({
 
   // From the password page, back returns to the email page; from the email page it leaves.
   const handleBack = () => {
+    if (submitting) return;
     if (currentPage === 1) {
       scrollToPage(0);
       return;
@@ -67,14 +77,21 @@ export function EmailPasswordScreen({
     router.back();
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentPage === 0) {
       scrollToPage(1);
       return;
     }
-    // TODO: check the email and password against a backend before signing in.
+    if (submitting) return;
     Keyboard.dismiss();
-    signIn();
+    setSubmitting(true);
+    try {
+      await signIn('password', { email: email.trim().toLowerCase(), password, flow });
+      // On success the auth guards swap onboarding for home, so the button stays loading.
+    } catch {
+      setSubmitting(false);
+      Alert.alert(...failureAlert);
+    }
   };
 
   return (
@@ -170,9 +187,13 @@ export function EmailPasswordScreen({
         style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <AnimatedButton
           onPress={handleContinue}
-          disabled={!isCurrentStepValid}
+          disabled={!isCurrentStepValid || submitting}
           style={[styles.button, !isCurrentStepValid && styles.buttonDisabled]}>
-          <Text style={styles.buttonText}>Continue</Text>
+          {submitting ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text style={styles.buttonText}>Continue</Text>
+          )}
         </AnimatedButton>
       </KeyboardStickyView>
     </View>

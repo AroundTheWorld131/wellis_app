@@ -1,125 +1,35 @@
-import { SymbolView } from 'expo-symbols';
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
-type Shot = {
-  date: Date;
-  doseMg: number;
-  site: string;
-};
+import { formatHistoryDay, HistoryCard, HistoryList } from '@/components/metrics/history-card';
+import { useRecentShots } from '@/hooks/use-shots';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-// Rotating sites like a typical weekly schedule.
-const SITES = [
-  'Stomach, upper left',
-  'Stomach, upper right',
-  'Thigh, left',
-  'Thigh, right',
-  'Arm, left',
-  'Arm, right',
-];
-
-// Placeholder: one 2.5 mg shot a week at 12:39, newest first, matching the Home Shot card.
-// TODO: show logged shots.
-function sampleShots(count: number): Shot[] {
-  const latest = new Date();
-  latest.setHours(12, 39, 0, 0);
-  return Array.from({ length: count }, (_, index) => ({
-    date: new Date(latest.getTime() - index * 7 * DAY_MS),
-    doseMg: 2.5,
-    site: SITES[index % SITES.length],
-  }));
-}
-
-// "Today", "Yesterday" or "Wed, Oct 29".
-function formatDay(date: Date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const day = new Date(date);
-  day.setHours(0, 0, 0, 0);
-  const daysAgo = Math.round((today.getTime() - day.getTime()) / DAY_MS);
-  if (daysAgo === 0) return 'Today';
-  if (daysAgo === 1) return 'Yesterday';
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
+// "9:00 AM", like the Last injection card.
 function formatTime(date: Date) {
-  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-// One card per recent shot: the day, the dose as the big number, and when and where.
+// One card per logged shot, newest first: the day and time, the dose as the big number, then
+// the medication and site, and the note if there is one.
 export function RecentShots({ count = 10, style }: { count?: number; style?: StyleProp<ViewStyle> }) {
-  const shots = sampleShots(count);
+  const shots = useRecentShots(count);
+  if (shots === undefined) return null;
 
   return (
-    <View style={[styles.list, style]}>
-      {shots.map((shot) => (
-        <View key={shot.date.getTime()} style={styles.card}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>{formatDay(shot.date)}</Text>
-            {/* Hints that each shot opens; nothing to open yet. TODO: shot detail. */}
-            <SymbolView
-              name="chevron.right"
-              size={14}
-              weight="semibold"
-              tintColor="#a3a3a3"
-              fallback={<Text style={styles.title}>›</Text>}
-            />
-          </View>
-          <View style={styles.valueRow}>
-            <Text style={styles.value}>{shot.doseMg}</Text>
-            <Text style={styles.unit}>mg</Text>
-          </View>
-          <Text style={styles.meta}>
-            {formatTime(shot.date)} · {shot.site}
-          </Text>
-        </View>
-      ))}
-    </View>
+    <HistoryList empty="No shots logged yet. Tap + on the Shot card to add one." style={style}>
+      {shots.map((shot) => {
+        const takenAt = new Date(shot.takenAt);
+        return (
+          <HistoryCard
+            key={shot._id}
+            title={formatHistoryDay(takenAt)}
+            subtitle={formatTime(takenAt)}
+            value={String(shot.doseMg)}
+            unit="mg"
+            meta={`${shot.medication} · ${shot.site}`}
+            note={shot.note}
+          />
+        );
+      })}
+    </HistoryList>
   );
 }
-
-const styles = StyleSheet.create({
-  list: {
-    gap: 6,
-  },
-  // Grey cards, since the detail screen is white.
-  card: {
-    gap: 6,
-    backgroundColor: '#f6f6f9',
-    borderRadius: 32,
-    borderCurve: 'continuous',
-    paddingHorizontal: 24,
-    paddingVertical: 22,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#a3a3a3',
-  },
-  valueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-  },
-  value: {
-    fontFamily: 'BricolageGrotesque_Condensed800ExtraBold',
-    fontSize: 36,
-    color: '#262626',
-  },
-  unit: {
-    fontFamily: 'BricolageGrotesque_Condensed800ExtraBold',
-    fontSize: 22,
-    color: '#c4c4c4',
-  },
-  meta: {
-    marginTop: 8,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#a3a3a3',
-  },
-});

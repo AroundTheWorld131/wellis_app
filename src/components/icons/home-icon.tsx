@@ -1,25 +1,26 @@
-import Svg, { Path, type SvgProps } from 'react-native-svg';
+import Svg, { G, Path, type SvgProps } from 'react-native-svg';
 
 type IconProps = Omit<SvgProps, 'strokeWidth'> & {
   size?: number;
   color?: string;
-  /** Line weight. Outline added around the filled shape, on the 24-unit grid. */
+  /** Line weight, on the 24-unit grid. */
   strokeWidth?: number;
 };
 
-// Outlined house, used for the Home tab. Same pattern as the Balm app's icons.
-export function HomeIcon({ size = 24, color = '#262626', strokeWidth = 0, ...props }: IconProps) {
+// Rounded house with a steep roof and a door line.
+const OUTLINE =
+  'M12 20L6.6 20A2.6 2.6 0 0 1 4 17.4L4 11.72A3 3 0 0 1 4.85 9.63L10.21 4.1A2.5 2.5 0 0 1 13.79 4.1L19.15 9.63A3 3 0 0 1 20 11.72L20 17.4A2.6 2.6 0 0 1 17.4 20L12 20Z';
+// Ends inside the floor line so its round cap never pokes out below the house.
+const DOOR = 'M12 16V19';
+
+// Outlined house, used for the Home tab.
+export function HomeIcon({ size = 24, color = '#262626', strokeWidth = 2, ...props }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" {...props}>
-      <Path
-        fill={color}
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinejoin="round"
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M10.033 2.883a3 3 0 0 1 3.934 0l7 6.076A3 3 0 0 1 22 11.225V19a3 3 0 0 1-3 3h-3.5a1.5 1.5 0 0 1-1.5-1.5v-6.813h-4V20.5A1.5 1.5 0 0 1 8.5 22H5a3 3 0 0 1-3-3v-7.775a3 3 0 0 1 1.033-2.266zm2.623 1.51a1 1 0 0 0-1.312 0l-7 6.077a1 1 0 0 0-.344.755V19a1 1 0 0 0 1 1h3v-6.313a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2V20h3a1 1 0 0 0 1-1v-7.775a1 1 0 0 0-.345-.755z"
-      />
+      <G fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+        <Path d={OUTLINE} />
+        <Path d={DOOR} />
+      </G>
     </Svg>
   );
 }

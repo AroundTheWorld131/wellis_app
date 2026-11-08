@@ -1,12 +1,19 @@
 import { EmailPasswordScreen } from '@/components/email-password-screen';
 
-// Get Started sends people who already have an account here, so it reads the same as login.
+// Convex Auth's Password provider needs at least 8 characters for a new account.
+const MIN_PASSWORD_LENGTH = 8;
+
 export default function SignupScreen() {
   return (
     <EmailPasswordScreen
-      passwordTitle="Enter your password"
-      passwordSubtitle="Use your account password to log in."
-      isPasswordValid={(password) => password.length > 0}
+      flow="signUp"
+      failureAlert={[
+        'Could not create account',
+        'This email may already have an account. Try logging in instead.',
+      ]}
+      passwordTitle="Create a password"
+      passwordSubtitle={`Use at least ${MIN_PASSWORD_LENGTH} characters.`}
+      isPasswordValid={(password) => password.length >= MIN_PASSWORD_LENGTH}
     />
   );
 }

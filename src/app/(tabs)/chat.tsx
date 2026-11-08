@@ -1,66 +1,83 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { ChatListCard, SupportLinkCard } from '@/components/chat/chat-list-card';
-import { TabScreen } from '@/components/tab-screen';
+import { ChatListCard, FaqLinkCard, SupportLinkCard } from '@/components/chat/chat-list-card';
+import { SkyScreen } from '@/components/sky-screen';
 
 export default function ChatScreen() {
   return (
-    <TabScreen>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-        <View>
-          <View style={styles.divider} />
-          <Text style={styles.sectionTitle}>Your care team</Text>
+    // On the Home page's sky, with no header.
+    <SkyScreen contentStyle={styles.content}>
+        {/* Illustration card with the title and subtitle over a dark fade at the bottom. */}
+        <View style={styles.section}>
+          <Image
+            source={require('@/assets/images/care-team.jpg')}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            transition={200}
+          />
+          <LinearGradient
+            colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.6)']}
+            locations={[0, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+          <Text style={styles.sectionTitle}>Personal care team</Text>
           <Text style={styles.sectionSubtitle}>
             Questions about your treatment, side effects or progress? We’re here to help.
           </Text>
+        </View>
+        <View style={styles.cards}>
           <ChatListCard chatId="care" />
-        </View>
-
-        <View>
-          <Text style={styles.sectionTitle}>Support</Text>
-          <Text style={styles.sectionSubtitle}>
-            Help with payments, your plan and medication deliveries.
-          </Text>
+          <View style={styles.divider} />
           <SupportLinkCard />
+          <View style={styles.divider} />
+          <FaqLinkCard />
         </View>
-      </ScrollView>
-    </TabScreen>
+    </SkyScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  // Hairline above the first section that scrolls with it, lined up with the cards' edges.
+  // Hairline between the chats, starting under the text so it clears the avatars.
   divider: {
     height: StyleSheet.hairlineWidth,
-    marginBottom: 24,
+    marginLeft: 63,
+    marginRight: 8,
     backgroundColor: '#dcdce2',
-  },
-  scroll: {
-    flex: 1,
   },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 20,
     paddingBottom: 120,
-    gap: 44,
+  },
+  // Photo card, text pinned to the bottom over the gradient.
+  section: {
+    height: 190,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    backgroundColor: '#e8e2d6',
+    borderRadius: 28,
+    borderCurve: 'continuous',
+    paddingHorizontal: 12,
+    paddingVertical: 20,
+  },
+  // Chats sit below the card on the screen background.
+  cards: {
+    marginTop: 16,
+    gap: 6,
   },
   sectionTitle: {
     paddingHorizontal: 8,
     fontFamily: 'BricolageGrotesque_Condensed800ExtraBold',
     fontSize: 26,
-    color: '#262626',
+    color: '#ffffff',
   },
-  // Tucked under the title, with more room before the card.
+  // Tucked under the title.
   sectionSubtitle: {
     paddingHorizontal: 8,
     marginTop: 1,
-    marginBottom: 12,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
-    lineHeight: 21,
-    color: '#a3a3a3',
+    color: 'rgba(255, 255, 255, 1)',
   },
 });

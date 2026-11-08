@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.exhomenever.wellis-app"
+      "bundleIdentifier": "com.exhomenever.wellis-app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,15 +45,27 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "Allow Wellis to read your health data, like weight and steps, to track your progress.",
-          "NSHealthUpdateUsageDescription": "Allow Wellis to save the weight you log to Apple Health.",
+          "NSHealthShareUsageDescription": "Allow Wellis to read your steps and activity to track your daily activity.",
+          "NSHealthUpdateUsageDescription": false,
           "background": false
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "23e74696-da77-46d5-beec-f7dfcd514d5c"
+      }
     }
   }
 }

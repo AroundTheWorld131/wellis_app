@@ -1,6 +1,6 @@
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { FlatList, StyleSheet, Text, View, type ScrollViewProps } from 'react-native';
 import { KeyboardChatScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,16 +10,23 @@ import { ChatAvatar } from '@/components/chat/chat-avatar';
 import { ChatComposer } from '@/components/chat/chat-composer';
 import { formatDay, isSameDay } from '@/components/chat/chat-format';
 import { MessageBubble } from '@/components/chat/message-bubble';
-import { TypingIndicator } from '@/components/chat/typing-indicator';
-import { ChatContacts, type ChatId, type ChatMessage } from '@/constants/sample-chats';
-import { useChatMessages, useChats } from '@/hooks/use-chats';
+import {
+  useCareContact,
+  useCareConversation,
+  useCareMessages,
+  useMarkRead,
+  useSendMessage,
+  type ChatId,
+  type ChatMessage,
+} from '@/hooks/use-chat';
+import { useRegisterPushNotifications } from '@/hooks/use-push-notifications';
 
 // Messages further apart than this start a new run, with its own name and time.
 const GROUP_GAP_MS = 5 * 60 * 1000;
 
 type ListItem =
   | { kind: 'day'; key: string; label: string }
-  | { kind: 'message'; key: string; message: ChatMessage; isFirstInGroup: boolean; isLastInGroup: boolean };
+  | { kind: 'message'; key: string; message: ChatMessage; isLastInGroup: boolean };
 
 function startsNewGroup(previous: ChatMessage | undefined, message: ChatMessage) {
   return (
@@ -43,7 +50,6 @@ function buildListItems(messages: ChatMessage[]): ListItem[] {
       kind: 'message',
       key: message.id,
       message,
-      isFirstInGroup: startsNewGroup(previous, message),
       isLastInGroup: !next || startsNewGroup(message, next),
     });
   });
@@ -51,7 +57,7 @@ function buildListItems(messages: ChatMessage[]): ListItem[] {
 }
 
 function isChatId(id: string | undefined): id is ChatId {
-  return !!id && id in ChatContacts;
+  return id === 'care';
 }
 
 export default function ChatConversationScreen() {
@@ -59,22 +65,22 @@ export default function ChatConversationScreen() {
   if (!isChatId(id)) {
     return <Redirect href="/chat" />;
   }
-  return <Conversation chatId={id} />;
+  return <Conversation />;
 }
 
-function Conversation({ chatId }: { chatId: ChatId }) {
+// The patient's chat with their care team, the only conversation for now.
+function Conversation() {
   const insets = useSafeAreaInsets();
-  const contact = ChatContacts[chatId];
-  const { send, typing, markRead } = useChats();
-  const messages = useChatMessages(chatId);
+  const contact = useCareContact();
+  const conversation = useCareConversation();
+  const { messages, loadOlder } = useCareMessages();
+  const { sendText, sendPhoto } = useSendMessage();
   const items = useMemo(() => buildListItems(messages), [messages]);
-  // Only messages that arrive after opening slide in, not the history.
-  const [initialIds] = useState(() => new Set(messages.map((message) => message.id)));
 
   // Being on screen means every message, including replies arriving now, has been seen.
-  useEffect(() => {
-    markRead(chatId);
-  }, [chatId, messages.length, markRead]);
+  useMarkRead(conversation?.unread);
+  // Ask for notifications here, where it's clear they're for care team replies.
+  useRegisterPushNotifications();
 
   // The list pads itself for the keyboard, less the safe area the composer already covers.
   const renderScrollComponent = useCallback(
@@ -100,7 +106,7 @@ function Conversation({ chatId }: { chatId: ChatId }) {
             {contact.name}
           </Text>
           <Text style={styles.headerSubtitle} numberOfLines={1}>
-            {typing[chatId] ? 'Typing…' : contact.subtitle}
+            {contact.subtitle}
           </Text>
         </View>
       </View>
@@ -114,8 +120,9 @@ function Conversation({ chatId }: { chatId: ChatId }) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-        // Inverted, so the header sits at the bottom, under the newest message.
-        ListHeaderComponent={typing[chatId] ? <TypingIndicator contact={contact} /> : undefined}
+        // Inverted, so the end is the top: scrolling up loads older messages.
+        onEndReached={loadOlder}
+        onEndReachedThreshold={0.5}
         renderItem={({ item }) =>
           item.kind === 'day' ? (
             <Text style={styles.day}>{item.label}</Text>
@@ -123,9 +130,7 @@ function Conversation({ chatId }: { chatId: ChatId }) {
             <MessageBubble
               message={item.message}
               contact={contact}
-              isFirstInGroup={item.isFirstInGroup}
               isLastInGroup={item.isLastInGroup}
-              animate={!initialIds.has(item.message.id)}
             />
           )
         }
@@ -134,8 +139,8 @@ function Conversation({ chatId }: { chatId: ChatId }) {
       <KeyboardStickyView offset={{ opened: insets.bottom }}>
         <ChatComposer
           bottomInset={insets.bottom}
-          onSend={(text) => send(chatId, { text })}
-          onSendPhoto={(image) => send(chatId, { image })}
+          onSend={sendText}
+          onSendPhoto={(image) => void sendPhoto(image)}
         />
       </KeyboardStickyView>
     </View>
@@ -145,7 +150,7 @@ function Conversation({ chatId }: { chatId: ChatId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f6',
+    backgroundColor: '#ffffff',
   },
   header: {
     flexDirection: 'row',
@@ -162,7 +167,6 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f2f2f6',
   },
   backFallback: {
     fontSize: 22,
@@ -170,11 +174,12 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
-    gap: 1,
   },
   headerName: {
     fontFamily: 'BricolageGrotesque_Condensed800ExtraBold',
     fontSize: 22,
+    // Tight line height so "Nurse" sits right under the name.
+    lineHeight: 24,
     color: '#262626',
   },
   headerSubtitle: {

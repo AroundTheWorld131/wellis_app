@@ -8,17 +8,17 @@ import { AnimatedButton } from '@/components/animated-button';
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
-// Drawn in a 40×56 box and scaled to whatever width the grid gives each glass.
+// Drawn in a 40×46 box and scaled to whatever width the grid gives each glass.
 const VIEW_WIDTH = 40;
-const VIEW_HEIGHT = 56;
+const VIEW_HEIGHT = 46;
 // Water stops a little below the rim when the glass is full.
-const WATER_TOP = 10;
+const WATER_TOP = 8;
 
 // Tapered cup: wide rim at the top, narrower rounded base.
 const CUP_PATH =
-  'M2 0 H38 Q40 0 39.8 2 L35 50 Q34.4 56 28.5 56 H11.5 Q5.6 56 5 50 L0.2 2 Q0 0 2 0 Z';
+  'M2 0 H38 Q40 0 39.8 2 L35 40 Q34.4 46 28.5 46 H11.5 Q5.6 46 5 40 L0.2 2 Q0 0 2 0 Z';
 // The inside of the cup, inset from the outline, which the water is clipped to.
-const WATER_PATH = 'M4.6 4 H35.4 L31.4 47 Q31 51.5 26.5 51.5 H13.5 Q9 51.5 8.6 47 Z';
+const WATER_PATH = 'M4.6 4 H35.4 L31.4 37 Q31 41.5 26.5 41.5 H13.5 Q9 41.5 8.6 37 Z';
 
 const COLORS = {
   cup: '#e8effc',
@@ -71,9 +71,9 @@ export function WaterGlass({ width, filled, showPlus, onPress }: WaterGlassProps
         {/* Shine streak down the left side. */}
         <Line
           x1={12.5}
-          y1={14}
+          y1={12}
           x2={14.5}
-          y2={40}
+          y2={32}
           stroke={COLORS.shine}
           strokeWidth={3.5}
           strokeLinecap="round"

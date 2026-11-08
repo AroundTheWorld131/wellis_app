@@ -1,124 +1,179 @@
-import { Image, type ImageSource } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { Children, Fragment, type ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 
 import { AnimatedButton } from '@/components/animated-button';
+import { SettingsIcon, type SettingsIconName } from '@/components/icons/settings-icons';
+import { BrandColor } from '@/constants/theme';
 
 export const SettingsColors = {
-  label: '#262626',
-  muted: '#a3a3a3',
-  divider: '#ececf1',
+  label: '#1c1c1e',
+  muted: '#8e8e93',
+  chevron: '#c7c7cc',
+  divider: '#dcdce2',
+  danger: '#e5484d',
 };
 
-// White card with a grey section title and rows split by hairline dividers.
-export function SettingsCard({ title, children }: { title: string; children: ReactNode }) {
+// Space inside the card on each side, and from the icon to the label.
+const ROW_PADDING = 18;
+const ICON_SIZE = 23;
+const ICON_GAP = 14;
+
+// iOS settings style section: an optional grey title above a white rounded card, with rows
+// split by hairlines that start under the labels, clear of the icons.
+export function SettingsCard({ title, children }: { title?: string; children: ReactNode }) {
   const rows = Children.toArray(children);
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {rows.map((row, index) => (
-        <Fragment key={index}>
-          {index > 0 ? <View style={styles.divider} /> : null}
-          {row}
-        </Fragment>
-      ))}
+    <View>
+      {title ? <Text style={styles.sectionTitle}>{title}</Text> : null}
+      <View style={styles.card}>
+        {rows.map((row, index) => (
+          <Fragment key={index}>
+            {index > 0 ? <View style={styles.divider} /> : null}
+            {row}
+          </Fragment>
+        ))}
+      </View>
     </View>
   );
 }
 
 type SettingsRowProps = {
   label: string;
-  /** Small icon before the label, like the Home cards' title icons. */
-  icon?: ImageSource | number;
+  /** Outline icon before the label. */
+  icon?: SettingsIconName;
+  /** Emoji in the icon's place, like a country flag. */
+  emoji?: string;
+  /** A check on the right in place of the chevron, for the picked option in a list. */
+  checked?: boolean;
+  /** Grey text on the right, like the saved goal or the email address. */
   value?: string;
   showChevron?: boolean;
+  /** An on/off switch on the right in place of the chevron. Tapping the row flips it too. */
+  toggle?: { value: boolean; onValueChange: (value: boolean) => void; disabled?: boolean };
+  /** Red icon and label, for actions like logging out. */
+  destructive?: boolean;
   onPress?: () => void;
 };
 
-// Dark label on the left, grey value and a chevron on the right.
-export function SettingsRow({ label, icon, value, showChevron = true, onPress }: SettingsRowProps) {
+// Icon and label on the left, grey value and a light chevron on the right.
+export function SettingsRow({
+  label,
+  icon,
+  emoji,
+  checked,
+  value,
+  toggle,
+  showChevron = checked === undefined && toggle === undefined,
+  destructive = false,
+  onPress,
+}: SettingsRowProps) {
+  const color = destructive ? SettingsColors.danger : SettingsColors.label;
+  const handlePress =
+    onPress ?? (toggle && !toggle.disabled ? () => toggle.onValueChange(!toggle.value) : undefined);
+
   return (
-    <AnimatedButton onPress={onPress} scaleTo={0.98} style={styles.row}>
-      <View style={styles.rowMain}>
-        <View style={styles.rowLeading}>
-          {icon ? <Image source={icon} style={styles.rowIcon} contentFit="contain" /> : null}
-          <Text style={styles.rowLabel}>{label}</Text>
-        </View>
-        <View style={styles.rowTrailing}>
-          {value ? (
-            <Text style={styles.rowValue} numberOfLines={1}>
-              {value}
-            </Text>
-          ) : null}
-          {showChevron ? (
-            <SymbolView
-              name="chevron.right"
-              size={13}
-              weight="semibold"
-              tintColor={SettingsColors.muted}
-              fallback={<Text style={styles.rowValue}>›</Text>}
-            />
-          ) : null}
-        </View>
+    // Fades on press like an iOS list row, rather than shrinking inside the card.
+    <AnimatedButton onPress={handlePress} disableAnimation activeOpacity={0.6} style={styles.row}>
+      {icon ? <SettingsIcon name={icon} size={ICON_SIZE} color={color} /> : null}
+      {emoji ? <Text style={styles.emoji}>{emoji}</Text> : null}
+      <Text style={[styles.label, { color }]} numberOfLines={1}>
+        {label}
+      </Text>
+      <View style={styles.trailing}>
+        {value ? (
+          <Text style={styles.value} numberOfLines={1}>
+            {value}
+          </Text>
+        ) : null}
+        {checked ? (
+          <SymbolView
+            name="checkmark"
+            size={16}
+            weight="bold"
+            tintColor={BrandColor}
+            fallback={<Text style={[styles.chevronFallback, { color: BrandColor }]}>✓</Text>}
+          />
+        ) : null}
+        {toggle ? (
+          <Switch
+            value={toggle.value}
+            onValueChange={toggle.onValueChange}
+            disabled={toggle.disabled}
+            trackColor={{ true: BrandColor }}
+          />
+        ) : null}
+        {showChevron ? (
+          <SymbolView
+            name="chevron.right"
+            size={14}
+            weight="semibold"
+            tintColor={SettingsColors.chevron}
+            fallback={<Text style={styles.chevronFallback}>›</Text>}
+          />
+        ) : null}
       </View>
     </AnimatedButton>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 40,
-    borderCurve: 'continuous',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 8,
-  },
+  // Lines up with the icons inside the card.
   sectionTitle: {
-    fontSize: 15,
+    marginLeft: ROW_PADDING,
+    marginBottom: 8,
+    fontSize: 16,
     fontWeight: '600',
     color: SettingsColors.muted,
-    marginBottom: 4,
+  },
+  card: {
+    overflow: 'hidden',
+    borderRadius: 24,
+    borderCurve: 'continuous',
+    backgroundColor: '#ffffff',
   },
   row: {
-    paddingVertical: 18,
-  },
-  rowMain: {
+    minHeight: 54,
+    paddingHorizontal: ROW_PADDING,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: ICON_GAP,
   },
-  rowLeading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  rowIcon: {
-    width: 20,
-    height: 20,
-  },
-  rowLabel: {
+  // Keeps its full width; a long value is what gets cut off.
+  label: {
+    flexShrink: 0,
     fontSize: 17,
-    fontWeight: '600',
     color: SettingsColors.label,
   },
-  rowTrailing: {
-    flexShrink: 1,
+  // Takes the rest of the row and pushes the value and chevron to the right.
+  trailing: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'flex-end',
+    gap: 8,
   },
-  rowValue: {
+  value: {
     flexShrink: 1,
     fontSize: 17,
-    fontWeight: '500',
     color: SettingsColors.muted,
   },
+  // Same width as an icon so labels line up with the rows above and below.
+  emoji: {
+    width: ICON_SIZE,
+    fontSize: 21,
+    textAlign: 'center',
+  },
+  chevronFallback: {
+    fontSize: 20,
+    color: SettingsColors.chevron,
+  },
+  // Starts under the label and stops short of the right edge, like iOS lists.
   divider: {
     height: StyleSheet.hairlineWidth,
+    marginLeft: ROW_PADDING + ICON_SIZE + ICON_GAP,
+    marginRight: ROW_PADDING,
     backgroundColor: SettingsColors.divider,
   },
 });

@@ -13,7 +13,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 export const CardColors = {
   label: '#a3a3a3',
   value: '#262626',
-  track: '#f3f3f3',
+  track: '#f2f2f6',
   accent: '#e8986a',
   success: '#63ab64',
 };
@@ -22,13 +22,15 @@ type MetricCardProps = {
   title: string;
   /** Illustration shown left of the title. */
   icon?: ImageSource;
-  /** Shown right after the title, like the calories card's up/down chevron. */
+  /** Shown right after the title, like a small chevron. */
   titleAccessory?: ReactNode;
   value: string;
   unit?: string;
   unitColor?: string;
   /** The ring or button on the right of the value. */
   action: ReactNode;
+  /** Where the action sits: centered beside the title and value, or in the top right corner. */
+  actionPlacement?: 'center' | 'top';
   /** Makes the whole card tappable, not just its action. */
   onPress?: () => void;
   children?: ReactNode;
@@ -43,12 +45,13 @@ export function MetricCard({
   unit,
   unitColor = CardColors.label,
   action,
+  actionPlacement = 'center',
   onPress,
   children,
 }: MetricCardProps) {
   const content = (
     <>
-      <View style={styles.top}>
+      <View style={[styles.top, actionPlacement === 'top' && styles.topAligned]}>
         <View style={styles.heading}>
           <View style={styles.titleRow}>
             {icon ? <Image source={icon} style={styles.icon} contentFit="contain" /> : null}
@@ -68,7 +71,7 @@ export function MetricCard({
 
   if (onPress) {
     return (
-      <AnimatedButton onPress={onPress} scaleTo={0.98} style={styles.card}>
+      <AnimatedButton onPress={onPress} disableAnimation style={styles.card}>
         {content}
       </AnimatedButton>
     );
@@ -76,8 +79,8 @@ export function MetricCard({
   return <View style={styles.card}>{content}</View>;
 }
 
-const RING_SIZE = 72;
-const RING_STROKE = 8;
+const RING_SIZE = 48;
+const RING_STROKE = 5;
 
 type ProgressRingButtonProps = {
   /** 0 to 1. At 0 the ring shows a single dot where progress starts. */
@@ -85,6 +88,8 @@ type ProgressRingButtonProps = {
   color?: string;
   /** What sits in the middle of the ring. Defaults to a plus. */
   icon?: ReactNode;
+  /** Width and height of the ring. */
+  size?: number;
   onPress?: () => void;
 };
 
@@ -93,9 +98,10 @@ export function ProgressRingButton({
   progress,
   color = CardColors.accent,
   icon = <PlusIcon />,
+  size = RING_SIZE,
   onPress,
 }: ProgressRingButtonProps) {
-  const radius = (RING_SIZE - RING_STROKE) / 2;
+  const radius = (size - RING_STROKE) / 2;
   const circumference = 2 * Math.PI * radius;
   const animatedProgress = useAnimatedProgress(progress);
 
@@ -105,20 +111,22 @@ export function ProgressRingButton({
     strokeDasharray: [animatedProgress.value * circumference, circumference],
   }));
 
-  return (
-    <AnimatedButton onPress={onPress} scaleTo={0.92} style={styles.ring}>
-      <Svg width={RING_SIZE} height={RING_SIZE} style={StyleSheet.absoluteFill}>
+  const sizeStyle = { width: size, height: size, borderRadius: size / 2 };
+
+  const ring = (
+    <>
+      <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
         <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
+          cx={size / 2}
+          cy={size / 2}
           r={radius}
           stroke={CardColors.track}
           strokeWidth={RING_STROKE}
           fill="none"
         />
         <AnimatedCircle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
+          cx={size / 2}
+          cy={size / 2}
           r={radius}
           stroke={color}
           strokeWidth={RING_STROKE}
@@ -126,16 +134,31 @@ export function ProgressRingButton({
           animatedProps={arcProps}
           fill="none"
           // Start at 12 o'clock instead of 3 o'clock.
-          transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
       {icon}
+    </>
+  );
+
+  // Without onPress it's a plain view, so taps reach the card around it.
+  if (!onPress) return <View style={[styles.ring, sizeStyle]}>{ring}</View>;
+  return (
+    <AnimatedButton onPress={onPress} scaleTo={0.92} style={[styles.ring, sizeStyle]}>
+      {ring}
     </AnimatedButton>
   );
 }
 
 // Same size as the ring, but a solid grey circle, for cards without a daily target.
 export function PlusCircleButton({ onPress }: { onPress?: () => void }) {
+  if (!onPress) {
+    return (
+      <View style={[styles.ring, styles.plusCircle]}>
+        <PlusIcon />
+      </View>
+    );
+  }
   return (
     <AnimatedButton onPress={onPress} scaleTo={0.92} style={[styles.ring, styles.plusCircle]}>
       <PlusIcon />
@@ -147,7 +170,7 @@ function PlusIcon() {
   return (
     <SymbolView
       name="plus"
-      size={26}
+      size={20}
       weight="bold"
       tintColor={CardColors.value}
       fallback={<Text style={styles.plusFallback}>+</Text>}
@@ -176,21 +199,33 @@ export function CardFooter({ children, onMorePress }: { children: ReactNode; onM
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 40,
+    borderRadius: 26,
     borderCurve: 'continuous',
-    paddingHorizontal: 28,
-    paddingTop: 28,
-    paddingBottom: 28,
+    // Same hairline border and soft shadow as the other Home cards.
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.04)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    elevation: 5,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
     gap: 28,
   },
   top: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  // Action pinned to the top right instead of centered on the title and value.
+  topAligned: {
+    alignItems: 'flex-start',
   },
   heading: {
     flex: 1,
-    gap: 6,
+    gap: 14,
   },
   titleRow: {
     flexDirection: 'row',
@@ -204,7 +239,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '600',
-    color: CardColors.label,
+    color: CardColors.value,
   },
   valueRow: {
     flexDirection: 'row',
@@ -226,12 +261,14 @@ const styles = StyleSheet.create({
     borderRadius: RING_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
+    
   },
   plusCircle: {
     backgroundColor: CardColors.track,
+    
   },
   plusFallback: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
     color: CardColors.value,
   },

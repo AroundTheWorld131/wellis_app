@@ -4,23 +4,17 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedButton } from '@/components/animated-button';
 import { ChatAvatar } from '@/components/chat/chat-avatar';
-import { ChatContacts, type ChatId } from '@/constants/sample-chats';
-import { BrandColor } from '@/constants/theme';
-import { useChatMessages, useChats } from '@/hooks/use-chats';
+import { useCareContact, useCareConversation, type ChatId } from '@/hooks/use-chat';
 
-// White card for one conversation: avatar, name, last message and an unread dot.
+// Row for one conversation: avatar, name, last message and an unread dot.
 export function ChatListCard({ chatId }: { chatId: ChatId }) {
-  const contact = ChatContacts[chatId];
-  const { typing, unread } = useChats();
-  const messages = useChatMessages(chatId);
-  const last = messages.at(-1);
-  const isUnread = !!unread[chatId];
+  const contact = useCareContact();
+  const conversation = useCareConversation();
+  const isUnread = !!conversation?.unread;
 
-  const preview = typing[chatId]
-    ? 'Typing…'
-    : last
-      ? `${last.from === 'me' ? 'You: ' : ''}${last.text ? last.text.replace(/\s+/g, ' ') : 'Photo'}`
-      : null;
+  const preview = conversation
+    ? `${conversation.lastMessageSender === 'patient' ? 'You: ' : ''}${conversation.lastMessageText}`
+    : null;
 
   return (
     <AnimatedButton
@@ -28,9 +22,8 @@ export function ChatListCard({ chatId }: { chatId: ChatId }) {
       scaleTo={0.98}
       onPress={() => router.push({ pathname: '/chat/[id]', params: { id: chatId } })}
       style={styles.card}>
-      <ChatAvatar source={contact.avatar} size={56} />
+      <ChatAvatar source={contact.avatar} size={44} />
       <View style={styles.text}>
-        {contact.role ? <Text style={styles.role}>{contact.role}</Text> : null}
         <Text style={styles.name} numberOfLines={1}>
           {contact.name}
         </Text>
@@ -40,69 +33,84 @@ export function ChatListCard({ chatId }: { chatId: ChatId }) {
           </Text>
         ) : null}
       </View>
-      {isUnread ? <View style={styles.unreadDot} /> : null}
+      {isUnread ? (
+        <View style={styles.unreadDot} />
+      ) : null}
     </AnimatedButton>
   );
 }
 
-const SUPPORT_URL = 'https://help.getwellis.com/en/';
+const HELP_CENTER_URL = 'https://help.getwellis.com/en/';
 
-// Same card for customer support, but it opens the Wellis help center in the browser.
-export function SupportLinkCard() {
+// Same row as a chat, but it opens a page in the browser instead of a conversation.
+function LinkCard({ title, subtitle, url }: { title: string; subtitle: string; url: string }) {
   return (
-    <AnimatedButton scaleTo={0.98} onPress={() => Linking.openURL(SUPPORT_URL)} style={styles.card}>
-      <ChatAvatar source={require('@/assets/images/wellis-icon.png')} size={56} />
+    <AnimatedButton scaleTo={0.98} onPress={() => Linking.openURL(url)} style={styles.card}>
+      <ChatAvatar
+        source={require('@/assets/images/wellis-icon.png')}
+        size={44}
+        inset={6}
+        background="#004851"
+      />
       <View style={styles.text}>
-        <Text style={styles.name}>Customer support</Text>
+        <Text style={styles.name}>{title}</Text>
         <Text style={styles.preview} numberOfLines={1}>
-          Get help with your account
+          {subtitle}
         </Text>
       </View>
     </AnimatedButton>
   );
 }
 
+// Customer support: opens the Wellis help center.
+export function SupportLinkCard() {
+  return (
+    <LinkCard
+      title="Customer support"
+      subtitle="Get help with your account"
+      url={HELP_CENTER_URL}
+    />
+  );
+}
+
+// FAQ: the help center doubles as the FAQ for now.
+export function FaqLinkCard() {
+  return (
+    <LinkCard
+      title="FAQ"
+      subtitle="Quick answers to common questions"
+      url={HELP_CENTER_URL}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
-  // Same corners as the Home cards.
+  // Plain row on the screen background, inset to line up with the section title.
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 32,
-    borderCurve: 'continuous',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    gap: 11,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
   },
   text: {
     flex: 1,
-    gap: 3,
-  },
-  role: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: BrandColor,
   },
   name: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
     color: '#262626',
   },
   preview: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
     color: '#a3a3a3',
   },
-  // Pinned to the card's top-right corner, level with the role label.
+  // Last item in the row, so the row's alignItems centers it vertically.
   unreadDot: {
-    position: 'absolute',
-    top: 22,
-    right: 22,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: BrandColor,
+    backgroundColor: '#ff3b30',
   },
 });

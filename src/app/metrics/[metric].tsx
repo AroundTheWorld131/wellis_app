@@ -8,23 +8,51 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimatedButton } from '@/components/animated-button';
 import { formatMetricValue, MetricChart, type MetricSelection } from '@/components/metrics/metric-chart';
 import { RecentShots } from '@/components/metrics/recent-shots';
+import { StepsHistory } from '@/components/metrics/steps-history';
+import { WaterHistory } from '@/components/metrics/water-history';
+import { WeighInHistory } from '@/components/metrics/weigh-in-history';
 import { SwitchPicker } from '@/components/switch-picker';
 import { METRIC_VIEWS } from '@/constants/metric-charts';
 import { METRIC_ICONS, METRICS, type MetricKey } from '@/constants/metrics';
+import { useDailySteps } from '@/hooks/use-daily-steps';
+import { useDailyWater } from '@/hooks/use-water';
+import { useDailyWeight, useLatestWeight } from '@/hooks/use-weight';
 
 // One detail screen per Home card, opened as /metrics/weight, /metrics/water, and so on.
 // Metrics with a chart lead with the selected value; the rest show their icon and title.
-// TODO: logging and real history.
+// Weight and water chart what's logged in Convex; steps chart Apple Health. Shots have no
+// chart (a weekly dose makes a flat, sparse line), just the list of every shot.
 export default function MetricScreen() {
   const insets = useSafeAreaInsets();
   const { metric } = useLocalSearchParams<{ metric: string }>();
   const title = METRICS[metric as MetricKey] ?? 'Not found';
-  const views = METRIC_VIEWS[metric as MetricKey];
+  const isShot = metric === 'shot';
+  const views = isShot ? undefined : METRIC_VIEWS[metric as MetricKey];
   // Which view the switch is on, like Weight or BMI.
   const [viewIndex, setViewIndex] = useState(0);
   const view = views?.[viewIndex];
   // The point the chart is pointing at, shown as the big value.
   const [selection, setSelection] = useState<MetricSelection | null>(null);
+  // Real daily values for the metrics that have them. Steps fall back to the placeholder
+  // without Apple Health (null); weight and water are undefined while loading, and weight
+  // is null before the first weigh-in.
+  const dailySteps = useDailySteps();
+  const dailyWater = useDailyWater(metric === 'water');
+  const dailyWeight = useDailyWeight(metric === 'weight');
+  const latestWeight = useLatestWeight(metric === 'weight');
+  const daily =
+    metric === 'steps'
+      ? dailySteps
+      : metric === 'water'
+        ? dailyWater
+        : metric === 'weight'
+          ? dailyWeight
+          : undefined;
+  const loading = (metric === 'water' || metric === 'weight') && daily === undefined;
+  const noWeighIns = metric === 'weight' && daily === null;
+  // Weight with nothing pressed shows the latest weigh-in and the day it was logged.
+  const latestDay = latestWeight?.day;
+  const latestLabel = latestDay ? `Logged ${formatDay(latestDay)}` : undefined;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -58,7 +86,7 @@ export default function MetricScreen() {
           <View style={[styles.titleRow, styles.valueTitleRow]}>
             {/* <Image source={METRIC_ICONS[metric as MetricKey]} style={styles.titleIcon} contentFit="contain" /> */}
             {/* <Text style={styles.title}>{title}</Text> */}
-            {selection ? (
+            {selection && !loading && !noWeighIns ? (
               <View>
                 {/* The picked view's own icon, like BMI's gauge, or the metric's icon. */}
                 {(view.icon ?? METRIC_ICONS[metric as MetricKey]) ? (
@@ -69,11 +97,14 @@ export default function MetricScreen() {
                   />
                 ) : null}
                 <Text style={[styles.title, styles.value]}>
-                  {formatMetricValue(selection.value, view.series.decimals)}
+                  {formatMetricValue(selection.value, view.series.decimals, view.series.trimZeros)}
                   {view.unit ? <Text style={styles.selectionUnit}> {view.unit}</Text> : null}
                 </Text>
                 <Text style={styles.selectionDate}>
-                  {selection.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  {/* The day, days or month the point covers, like "January 2026" on 1Y. */}
+                  {/* Weight is averaged, not summed, so it's an average rather than a daily one. */}
+                  {selection.isAverage ? (metric === 'steps' || metric === 'water' ? 'Daily average · ' : 'Average · ') : ''}
+                  {selection.periodLabel}
                 </Text>
               </View>
             ) : null}
@@ -87,9 +118,17 @@ export default function MetricScreen() {
           </View>
         )}
 
-        {view ? (
+        {view && noWeighIns ? (
+          <Text style={styles.empty}>Log your first weight to see your progress here.</Text>
+        ) : view && loading ? (
+          // Holds the chart's space so the page doesn't jump when the data arrives.
+          <View style={styles.chartPlaceholder} />
+        ) : view ? (
           <MetricChart
             series={view.series}
+            daily={daily}
+            summary={metric === 'weight' ? 'latest' : 'average'}
+            latestLabel={latestLabel}
             color={view.color}
             toValue={view.toValue}
             onSelectionChange={setSelection}
@@ -97,10 +136,34 @@ export default function MetricScreen() {
           />
         ) : null}
 
-        {metric === 'shot' ? <RecentShots count={10} style={styles.recentShots} /> : null}
+        {/* Every shot, newest first (the real query returns at most 50). */}
+        {isShot ? <RecentShots count={100} style={styles.history} /> : null}
+        {/* The last month of weigh-ins, daily steps or daily water under the chart. */}
+        {metric === 'weight' || metric === 'steps' || metric === 'water' ? (
+          <>
+            <Text style={styles.sectionTitle}>Entries</Text>
+            {metric === 'weight' ? (
+              <WeighInHistory count={30} style={[styles.history, styles.entriesList]} />
+            ) : metric === 'steps' ? (
+              <StepsHistory count={30} style={[styles.history, styles.entriesList]} />
+            ) : (
+              <WaterHistory count={30} style={[styles.history, styles.entriesList]} />
+            )}
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
+}
+
+// "2026-11-05" → "Nov 5, 2026".
+function formatDay(day: string) {
+  const [year, month, date] = day.split('-').map(Number);
+  return new Date(year, month - 1, date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 const styles = StyleSheet.create({
@@ -184,8 +247,35 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
-  recentShots: {
-    marginTop: 32,
-    marginHorizontal: 16,
+  // The chart's height plus its range buttons.
+  chartPlaceholder: {
+    height: 330,
+    marginTop: 20,
+  },
+  empty: {
+    marginTop: 40,
+    marginHorizontal: 20,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#a3a3a3',
+    textAlign: 'center',
+  },
+  // Same side margins as the Home cards.
+  history: {
+    marginTop: 16,
+    marginHorizontal: 22,
+  },
+  // Like the Home page's "Today" heading, with room under the chart's range picker
+  // (40 more than the shot list gets).
+  // Close under the Entries heading.
+  entriesList: {
+    marginTop: 10,
+  },
+  sectionTitle: {
+    marginTop: 56,
+    marginHorizontal: 22,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#262626',
   },
 });

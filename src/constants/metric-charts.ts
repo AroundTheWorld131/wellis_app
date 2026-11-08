@@ -1,6 +1,6 @@
 import type { MetricSeries } from '@/components/metrics/metric-chart';
 import type { MetricKey } from '@/constants/metrics';
-import { SAMPLE_HEIGHT_CM } from '@/constants/sample-weigh-ins';
+import { MOCK_HEIGHT_CM as SAMPLE_HEIGHT_CM } from '@/constants/mock-history';
 
 // What each metric detail screen charts. A screen with more than one view gets a switch
 // above its value; each view has its own color, unit and placeholder history.
@@ -34,43 +34,14 @@ export const METRIC_VIEWS: Partial<Record<MetricKey, MetricView[]>> = {
       icon: require('@/assets/images/cardIcons/bmi.png'),
     },
   ],
-  // Macro colors match the Calories card's bars on Home.
-  calories: [
-    {
-      label: 'Calories',
-      color: '#f0894b',
-      unit: 'kcal',
-      series: { end: 1950, dropPerDay: 0, wobble: 260, decimals: 0 },
-    },
-    {
-      label: 'Carbs',
-      color: '#f2b544',
-      unit: 'g',
-      icon: require('@/assets/images/cardIcons/carbs.png'),
-      series: { end: 215, dropPerDay: 0, wobble: 45, decimals: 0 },
-    },
-    {
-      label: 'Fats',
-      color: '#ec7a8c',
-      unit: 'g',
-      icon: require('@/assets/images/cardIcons/fat.png'),
-      series: { end: 64, dropPerDay: 0, wobble: 14, decimals: 0 },
-    },
-    {
-      label: 'Protein',
-      color: '#6bbf8a',
-      unit: 'g',
-      icon: require('@/assets/images/cardIcons/protein.png'),
-      series: { end: 118, dropPerDay: 0, wobble: 22, decimals: 0 },
-    },
-  ],
-  // Placeholder: the same 2.5 mg every week, matching the Home Shot card.
+  // The charts plot logged shots; this series only sets the number format: two decimals for
+  // doses like 0.25 mg, trailing zeros dropped so 2.5 mg isn't shown as 2.50.
   shot: [
     {
       label: 'Shot',
       color: '#14919b',
       unit: 'mg',
-      series: { end: 2.5, dropPerDay: 0, wobble: 0, decimals: 1 },
+      series: { end: 2.5, dropPerDay: 0, wobble: 0, decimals: 2, trimZeros: true },
     },
   ],
   water: [
