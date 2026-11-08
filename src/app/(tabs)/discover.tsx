@@ -26,8 +26,8 @@ function readTile(read: DiscoverRead) {
 // articles. The tiles don't open anything for now.
 export default function DiscoverScreen() {
   return (
-    // On the Home page's sky, with no header.
-    <SkyScreen contentStyle={styles.content}>
+    // On the Home page's sky, over a white page.
+    <SkyScreen contentStyle={styles.content} pageColor="#ffffff">
         <Shelf title="Recipes" inset={PAGE_PADDING}>
           {RECIPES.map((recipe) => (
             <ShelfTile

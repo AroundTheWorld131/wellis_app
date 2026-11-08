@@ -7,8 +7,8 @@ import { SkyScreen } from '@/components/sky-screen';
 
 export default function ChatScreen() {
   return (
-    // On the Home page's sky, with no header.
-    <SkyScreen contentStyle={styles.content}>
+    // On the Home page's sky, over a white page.
+    <SkyScreen contentStyle={styles.content} pageColor="#ffffff">
         {/* Illustration card with the title and subtitle over a dark fade at the bottom. */}
         <View style={styles.section}>
           <Image

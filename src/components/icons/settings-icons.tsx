@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
 export type SettingsIconName =
   | 'weight'
@@ -17,7 +17,10 @@ export type SettingsIconName =
   | 'help'
   | 'document'
   | 'shield'
-  | 'logout';
+  | 'logout'
+  | 'syringe'
+  | 'protein'
+  | 'stopwatch';
 
 // Thin, rounded outline icons for the Profile rows, in the style of iOS settings lists.
 // Each is drawn on a 24-unit grid and stroked, so one color and line weight fits them all.
@@ -134,6 +137,29 @@ const ICONS: Record<SettingsIconName, ReactNode> = {
       <Path d="M10 4.5H7A2.5 2.5 0 0 0 4.5 7v10A2.5 2.5 0 0 0 7 19.5h3" />
       <Path d="m14.5 8 4 4-4 4" />
       <Path d="M18.5 12h-9" />
+    </>
+  ),
+  // Syringe on a diagonal: plunger at the top right, needle at the bottom left.
+  syringe: (
+    <G transform="rotate(45 12 12)">
+      <Rect x="9.5" y="5.5" width="5" height="10.5" rx="1.25" />
+      <Path d="M12 16v5M12 5.5V2.75M9.75 2.75h4.5M9.5 9h2M9.5 12h2" />
+    </G>
+  ),
+  // Drumstick, for protein: the meat on the upper right, the bone toward the lower left.
+  protein: (
+    <>
+      <Ellipse cx="14.5" cy="9.5" rx="6" ry="5" transform="rotate(-45 14.5 9.5)" />
+      <Path d="M10.3 13.7 6.3 17.7" />
+      <Circle cx="4.9" cy="17.4" r="1.5" />
+      <Circle cx="6.6" cy="19.1" r="1.5" />
+    </>
+  ),
+  // Stopwatch, for exercise.
+  stopwatch: (
+    <>
+      <Circle cx="12" cy="13.5" r="7.25" />
+      <Path d="M12 13.5V10M10 3h4M12 3v3M18 7l1.2-1.2" />
     </>
   ),
 };

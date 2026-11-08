@@ -1,8 +1,7 @@
 import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { BrandColor, BrandColorLight } from '@/constants/theme';
+import { BrandColorLight } from '@/constants/theme';
 
 
 const PHOTO_SIZE = 40;
@@ -30,19 +29,6 @@ export function UpcomingCallCard() {
             <Text style={styles.subtitle}>Tomorrow’s call is a chance to review{'\n'}your progress with your doctor</Text>
           </View>
         </View>
-        {/* The date on the left, the chevron level with it on the right. */}
-        <View style={styles.dateRow}>
-          <View style={{backgroundColor:"rgba(255,255,255,0.9)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8}}>
-            <Text style={{color:BrandColor, fontSize: 13, fontWeight: "600"}}>9 November at 10:00</Text>
-          </View>
-          <SymbolView
-            name="chevron.right"
-            size={14}
-            weight="semibold"
-            tintColor="rgba(255, 255, 255, 0.6)"
-            fallback={<Text style={styles.chevronFallback}>›</Text>}
-          />
-        </View>
 
       </View>
     </View>
@@ -58,8 +44,8 @@ const styles = StyleSheet.create({
     backgroundColor: BrandColorLight,
     borderRadius: 32,
     borderCurve: 'continuous',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   text: {
     flex: 1,
@@ -73,16 +59,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 10,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  chevronFallback: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.6)',
   },
   // Drs. Diego Keijzer, from getwellis.com.
   doctorPhoto: {

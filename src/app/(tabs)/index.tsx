@@ -17,8 +17,8 @@ const HEADER_HEIGHT = 59;
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  // The first card starts partway into the sky's fade, so the whole sky shows above it.
-  const cardsTop = (width / SKY_ASPECT_RATIO) * SKY_FADE_START;
+  // The first card starts partway into the sky's fade (20 above that spot), so most of the sky shows above it.
+  const cardsTop = (width / SKY_ASPECT_RATIO) * SKY_FADE_START - 20;
   const cardsPadding = Math.max(20, cardsTop - insets.top - HEADER_HEIGHT);
 
   return (

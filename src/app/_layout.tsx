@@ -14,9 +14,8 @@ import {
 import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { ConvexReactClient, useConvexAuth } from 'convex/react';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
@@ -30,7 +29,6 @@ const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
 });
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
     BricolageGrotesque_Condensed800ExtraBold: require('@/assets/fonts/BricolageGrotesque-CondensedExtraBold.ttf'),
     Caveat_600SemiBold,
@@ -52,7 +50,7 @@ export default function RootLayout() {
   return (
     <ConvexAuthProvider client={convex} storage={authStorage}>
       <KeyboardProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={DefaultTheme}>
           <AnimatedSplashOverlay />
           <RootStack />
         </ThemeProvider>
@@ -78,6 +76,17 @@ function RootStack() {
       <Stack.Protected guard={isSignedIn} redirectTo="/onboarding/welcome">
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="metrics/[metric]" />
+        {/* The tab bar's plus: a sheet sized to its rows, with a grabber. */}
+        <Stack.Screen
+          name="log-menu"
+          options={{
+            presentation: 'formSheet',
+            sheetAllowedDetents: 'fitToContents',
+            sheetGrabberVisible: true,
+            sheetCornerRadius: 32,
+            contentStyle: { backgroundColor: '#f6f6f9' },
+          }}
+        />
         <Stack.Screen name="log-weight" options={{ presentation: 'modal' }} />
         <Stack.Screen name="log-water" options={{ presentation: 'modal' }} />
         <Stack.Screen name="log-shot" options={{ presentation: 'modal' }} />

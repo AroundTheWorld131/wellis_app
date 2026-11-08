@@ -9,6 +9,8 @@ type SkyScreenProps = {
   /** Padding and gaps for the screen's content, which starts where the sky fades. */
   contentStyle?: StyleProp<ViewStyle>;
   children?: ReactNode;
+  /** The page under the sky. Defaults to the light grey Home uses. */
+  pageColor?: string;
 };
 
 // The logo row's height, like Home's: 15 above, the 32pt logo, 12 below.
@@ -16,18 +18,18 @@ const HEADER_HEIGHT = 59;
 
 // A tab page like Home: the sky over the light grey page and the Wellis logo at the top, both
 // scrolling with the content, which starts where Home's cards do, partway into the sky's fade.
-export function SkyScreen({ contentStyle, children }: SkyScreenProps) {
+export function SkyScreen({ contentStyle, children, pageColor = SKY_PAGE_COLOR }: SkyScreenProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  // Same spot as Home's first card, but never closer than 20 under the logo.
-  const contentPadding = Math.max(20, (width / SKY_ASPECT_RATIO) * SKY_FADE_START - insets.top - HEADER_HEIGHT);
+  // 20 above Home's first-card spot, but never closer than 20 under the logo.
+  const contentPadding = Math.max(20, (width / SKY_ASPECT_RATIO) * SKY_FADE_START - insets.top - HEADER_HEIGHT - 20);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: pageColor }]}>
       <ScrollView
         style={styles.body}
         showsVerticalScrollIndicator={false}>
-        <SkyBackground />
+        <SkyBackground pageColor={pageColor} />
         <View style={{ height: insets.top }} />
         <View style={styles.header}>
           <Image source={require('@/assets/images/wellis-logo.svg')} style={styles.logo} contentFit="contain" />

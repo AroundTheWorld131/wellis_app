@@ -14,7 +14,13 @@ export const SKY_FADE_START = 0.8;
 // The sky for the top of a light grey page, behind the status bar and the header. Put it first
 // inside the page's scroll view so it scrolls with the page. It stretches with the screen width,
 // keeping its shape so the fade ends at the same spot, and never takes touches.
-export function SkyBackground() {
+// pageColor: the page under the sky. The image ends in the light grey, so on any other color
+// the blend fades a taller strip of the sky into it.
+export function SkyBackground({ pageColor = SKY_PAGE_COLOR }: { pageColor?: string }) {
+  const blend =
+    pageColor === SKY_PAGE_COLOR
+      ? styles.blend
+      : [styles.blend, { height: '30%' as const, backgroundImage: `linear-gradient(to bottom, ${pageColor}00, ${pageColor})` }];
   return (
     <View style={styles.container}>
       <View style={styles.sky}>
@@ -22,7 +28,7 @@ export function SkyBackground() {
         <Image source={SKY} style={styles.mirror} contentFit="cover" />
         <Image source={SKY} style={StyleSheet.absoluteFill} contentFit="cover" priority="high" />
         {/* JPEG can't store the page grey exactly, so the sky's last few points blend into it. */}
-        <View style={styles.blend} />
+        <View style={blend} />
       </View>
     </View>
   );
