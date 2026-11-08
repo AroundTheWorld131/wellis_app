@@ -1,3 +1,5 @@
+import { Button, HStack, Host, Image, Menu, Text as SwiftText } from '@expo/ui/swift-ui';
+import { buttonStyle, font, foregroundStyle, menuIndicator, menuStyle } from '@expo/ui/swift-ui/modifiers';
 import { useQuery } from 'convex/react';
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
@@ -117,6 +119,54 @@ export function FormRow({ label, value, placeholder, trailing, onPress }: FormRo
   );
 }
 
+type MenuRowProps<T extends string | number> = {
+  label: string;
+  options: { label: string; value: T }[];
+  selected: T | null;
+  onSelect: (value: T) => void;
+  /** Shown in grey until something is picked. */
+  placeholder: string;
+};
+
+// A form row whose value opens a native dropdown menu in place, with a check on the picked
+// option, instead of pushing a choice screen.
+export function MenuRow<T extends string | number>({ label, options, selected, onSelect, placeholder }: MenuRowProps<T>) {
+  const current = options.find((option) => option.value === selected);
+
+  return (
+    <FormRow
+      label={label}
+      trailing={
+        <Host matchContents>
+          <Menu
+            label={
+              <HStack spacing={6}>
+                <SwiftText
+                  modifiers={[
+                    font({ size: 17 }),
+                    foregroundStyle(current ? '#8e8e93' : '#a3a3a3'),
+                  ]}>
+                  {current?.label ?? placeholder}
+                </SwiftText>
+                <Image systemName="chevron.up.chevron.down" size={13} color="#a3a3a3" />
+              </HStack>
+            }
+            modifiers={[menuStyle('button'), buttonStyle('plain'), menuIndicator('hidden')]}>
+            {options.map((option) => (
+              <Button
+                key={String(option.value)}
+                label={option.label}
+                systemImage={option.value === selected ? 'checkmark' : undefined}
+                onPress={() => onSelect(option.value)}
+              />
+            ))}
+          </Menu>
+        </Host>
+      }
+    />
+  );
+}
+
 type ChoiceScreenProps<T> = {
   title: string;
   options: { label: string; value: T }[];
@@ -203,15 +253,16 @@ const styles = StyleSheet.create({
   section: {
     gap: 8,
   },
+  // Same as the Profile section titles, lined up with the labels inside the card.
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#a3a3a3',
-    paddingHorizontal: 8,
+    color: '#8e8e93',
+    paddingHorizontal: 20,
   },
-  // Grey on the white sheet, like the recent shots cards.
+  // White on the grey sheet, like the Profile cards.
   card: {
-    backgroundColor: '#f6f6f9',
+    backgroundColor: '#ffffff',
     borderRadius: 28,
     borderCurve: 'continuous',
     paddingHorizontal: 20,
@@ -227,10 +278,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
+  // Same as the Profile rows' labels.
   rowLabel: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#262626',
+    color: '#1c1c1e',
   },
   rowTrailing: {
     flexShrink: 1,
@@ -238,11 +289,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  // Same as the Profile rows' values.
   rowValue: {
     flexShrink: 1,
     fontSize: 17,
-    fontWeight: '500',
-    color: '#737373',
+    color: '#8e8e93',
   },
   rowPlaceholder: {
     color: '#a3a3a3',

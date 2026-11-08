@@ -5,12 +5,13 @@ import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AnimatedButton } from '@/components/animated-button';
 import { dayToDate, formatLogDay, useLogDay } from '@/components/log-day';
-import { FormRow, FormSection, useShotDraft } from '@/components/shot-form';
-import { SwitchPicker } from '@/components/switch-picker';
-import { dosesFor, formatDose, MEDICATION_NAMES } from '@/constants/shots';
+import { PillButton } from '@/components/pill-button';
+import { FormRow, FormSection, MenuRow, useShotDraft } from '@/components/shot-form';
+import { dosesFor, formatDose, INJECTION_SITES, MEDICATION_NAMES } from '@/constants/shots';
 import { BrandColor } from '@/constants/theme';
 import { api } from '../../../convex/_generated/api';
 
@@ -18,6 +19,7 @@ import { api } from '../../../convex/_generated/api';
 // Each row pushes its own screen inside the sheet; Save writes the shot to Convex.
 export default function LogShotScreen() {
   const { day } = useLogDay();
+  const insets = useSafeAreaInsets();
   const { draft, update } = useShotDraft();
   const logShot = useMutation(api.shots.log);
   const [saving, setSaving] = useState(false);
@@ -56,14 +58,10 @@ export default function LogShotScreen() {
             fallback={<Text style={styles.closeFallback}>×</Text>}
           />
         </AnimatedButton>
-        <Text style={styles.headerTitle}>Add shot</Text>
-        <AnimatedButton
-          onPress={handleSave}
-          disabled={!canSave}
-          scaleTo={0.95}
-          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}>
-          <Text style={styles.saveText}>Save</Text>
-        </AnimatedButton>
+        {/* Absolutely centered so the X on the left doesn't push it off center. */}
+        <Text style={styles.headerTitle} numberOfLines={1} pointerEvents="none">
+          Add shot
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -85,32 +83,29 @@ export default function LogShotScreen() {
         </FormSection>
 
         <FormSection title="Details">
-          <FormRow
+          <MenuRow
             label="Medication"
-            trailing={
-              <SwitchPicker
-                options={MEDICATION_NAMES}
-                selectedIndex={MEDICATION_NAMES.indexOf(medication)}
-                onSelect={(index) => {
-                  const next = MEDICATION_NAMES[index];
-                  // Switching keeps the dose only if the other medication comes in it.
-                  update({ medication: next, doseMg: doseMg !== null && dosesFor(next).includes(doseMg) ? doseMg : null });
-                }}
-                style={styles.medicationSwitch}
-              />
+            options={MEDICATION_NAMES.map((name) => ({ label: name, value: name }))}
+            selected={medication}
+            onSelect={(next) =>
+              // Switching keeps the dose only if the other medication comes in it.
+              update({ medication: next, doseMg: doseMg !== null && dosesFor(next).includes(doseMg) ? doseMg : null })
             }
+            placeholder="Choose"
           />
-          <FormRow
+          <MenuRow
             label="Strength"
-            value={doseMg === null ? null : formatDose(doseMg)}
+            options={dosesFor(medication).map((dose) => ({ label: formatDose(dose), value: dose }))}
+            selected={doseMg}
+            onSelect={(dose) => update({ doseMg: dose })}
             placeholder="Choose"
-            onPress={() => router.push('/log-shot/dose')}
           />
-          <FormRow
+          <MenuRow
             label="Injection site"
-            value={site}
+            options={INJECTION_SITES.map((option) => ({ label: option, value: option }))}
+            selected={site}
+            onSelect={(option) => update({ site: option })}
             placeholder="Choose"
-            onPress={() => router.push('/log-shot/site')}
           />
         </FormSection>
 
@@ -124,24 +119,34 @@ export default function LogShotScreen() {
           />
         </FormSection>
       </ScrollView>
+
+      {/* Pinned to the bottom, same pill as the other log sheets' Save button. */}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <PillButton label="Save" onPress={handleSave} disabled={!canSave} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Profile's light grey, so the white cards stand out like they do there.
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f6f6f9',
   },
-  // Same close and Save buttons as the other log sheets, with a title between them.
+  // Same close button as the other log sheets, with the title centered.
   header: {
     paddingHorizontal: 20,
     paddingTop: 16,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerTitle: {
+    position: 'absolute',
+    left: 80,
+    right: 80,
+    bottom: 11,
+    textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
     color: '#262626',
@@ -152,33 +157,16 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f6f6f9',
+    backgroundColor: '#ffffff',
   },
   closeFallback: {
     fontSize: 26,
     lineHeight: 28,
     color: '#000',
   },
-  saveButton: {
-    height: 42,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: BrandColor,
-  },
-  saveButtonDisabled: {
-    opacity: 0.4,
-  },
-  saveText: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  // Darker than the switch's usual track, so it shows on the grey card.
-  medicationSwitch: {
-    width: 210,
-    backgroundColor: '#e9e9ee',
+  footer: {
+    paddingHorizontal: 22,
+    paddingTop: 10,
   },
   content: {
     paddingHorizontal: 16,
